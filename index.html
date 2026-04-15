@@ -234,6 +234,27 @@
             font-size: 0.65rem;
         }
 
+        .infographic-wrapper {
+            cursor: grab;
+        }
+        .infographic-wrapper:active {
+            cursor: grabbing;
+        }
+
+        .mobile-hint { display: none; }
+        @media (max-width: 1024px) {
+            .mobile-hint {
+                display: flex; justify-content: center; align-items: center; gap: 10px;
+                position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+                background: rgba(15, 23, 42, 0.95); padding: 15px; text-transform: uppercase;
+                border-top: 1px solid rgba(59,130,246,0.5); color: #60a5fa; font-weight: bold;
+                backdrop-filter: blur(10px); box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            }
+            .infographic-wrapper { padding-bottom: 80px; padding-left: 10px; }
+            .title-left { left: 150px; }
+            .title-right { left: 1400px; }
+        }
+
     </style>
 </head>
 <body>
@@ -473,6 +494,31 @@
 
     </div>
 </div>
+
+<div class="mobile-hint">
+    <i class="fa-solid fa-hand-pointer"></i> Kéo vuốt sang ngang để khám phá toàn bộ hệ thống
+</div>
+
+<script>
+    const wrapper = document.querySelector('.infographic-wrapper');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    wrapper.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - wrapper.offsetLeft;
+        scrollLeft = wrapper.scrollLeft;
+    });
+    wrapper.addEventListener('mouseleave', () => { isDown = false; });
+    wrapper.addEventListener('mouseup', () => { isDown = false; });
+    wrapper.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - wrapper.offsetLeft;
+        wrapper.scrollLeft = scrollLeft - (x - startX) * 1.5;
+    });
+</script>
 
 </body>
 </html>
