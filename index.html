@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quy trình Đặc quyền - So sánh Trước & Sau</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --kh: #3b82f6; /* Blue */
+            --cb: #f472b6; /* Pink */
+            --dt: #34d399; /* Green */
+            --fe: #8b5cf6; /* Purple */
+            --api: #f97316; /* Orange */
+            --ms: #ec4899; /* Magenta */
+            --sp: #facc15; /* Yellow */
+            --db: #4ade80; /* Light Green */
+        }
+
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+            color: white;
+            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+        }
+
+        .infographic-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding: 40px;
+        }
+
+        .infographic {
+            position: relative;
+            width: 2450px;
+            height: 900px;
+            margin: 0 auto;
+        }
+
+        /* Titles */
+        .title-left, .title-right {
+            position: absolute;
+            top: 20px;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.9);
+            z-index: 20;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .title-left { left: 350px; transform: translateX(-50%); }
+        .title-right { left: 1560px; transform: translateX(-50%); }
+
+        /* Divider */
+        .divider {
+            position: absolute;
+            left: 770px;
+            top: 50px;
+            bottom: 50px;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+        }
+
+        /* Sys Zones */
+        .sys-zone {
+            position: absolute;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.01);
+            z-index: 0;
+        }
+        .zone-name {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg);
+            padding: 0 15px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Communication Icons */
+        .comm-icons {
+            position: absolute;
+            z-index: 15;
+            display: flex;
+            gap: 10px;
+            transform: translate(-50%, -50%);
+            background: var(--bg);
+            padding: 6px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .comm-icons i { font-size: 1.2rem; animation: pulse 2s infinite alternate; }
+        .comm-icons i.fa-envelope { color: #facc15; }
+        .comm-icons i.fa-phone-volume { color: #38bdf8; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8;}
+            100% { transform: scale(1.15); opacity: 1;}
+        }
+
+        /* Communication Box Positions (Left Pane) */
+        .pos-kh-cb { top: 325px; left: 250px; }
+        .pos-kh-dt { top: 325px; left: 450px; }
+        .pos-cb-dt { top: 450px; left: 350px; }
+
+        /* SVG layer */
+        svg.connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2450px;
+            height: 900px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Lines */
+        .anim-line {
+            fill: none;
+            stroke-width: 3;
+            stroke-dasharray: 12 12;
+            animation: dash 1.5s linear infinite;
+        }
+        .anim-line.rev { animation: dash-rev 1.5s linear infinite; }
+
+        .anim-line.kh { stroke: var(--kh); }
+        .anim-line.cb { stroke: var(--cb); }
+        .anim-line.dt { stroke: var(--dt); }
+        .anim-line.fe { stroke: var(--fe); }
+        .anim-line.api { stroke: var(--api); }
+        .anim-line.ms { stroke: var(--ms); }
+        .anim-line.sp { stroke: var(--sp); }
+        .anim-line.db-conn { stroke: var(--db); }
+
+        @keyframes dash { to { stroke-dashoffset: -24; } }
+        @keyframes dash-rev { to { stroke-dashoffset: 24; } }
+
+        /* Nodes */
+        .node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 41, 59, 1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .node:hover { transform: translate(-50%, -50%) scale(1.1); }
+
+        .node.main { width: 120px; height: 120px; }
+        .node.mini { width: 80px; height: 80px; }
+
+        /* Node Sizes & Colors */
+        .node i { margin-bottom: 5px; }
+        .node.main i { font-size: 2.5rem; }
+        .node.mini i { font-size: 1.5rem; margin-bottom: 3px; }
+
+        .node.c-kh { border-color: var(--kh); box-shadow: 0 0 30px rgba(59,130,246,0.3); } .node.c-kh i { color: var(--kh); }
+        .node.c-cb { border-color: var(--cb); box-shadow: 0 0 30px rgba(244,114,182,0.3); } .node.c-cb i { color: var(--cb); }
+        .node.c-dt { border-color: var(--dt); box-shadow: 0 0 30px rgba(52,211,153,0.3); } .node.c-dt i { color: var(--dt); }
+        .node.c-fe { border-color: var(--fe); box-shadow: 0 0 30px rgba(139,92,246,0.3); } .node.c-fe i { color: var(--fe); }
+        .node.c-api { border-color: var(--api); box-shadow: 0 0 30px rgba(249,115,22,0.3); } .node.c-api i { color: var(--api); }
+        .node.c-ms { border-color: var(--ms); box-shadow: 0 0 30px rgba(236,72,153,0.3); } .node.c-ms i { color: var(--ms); }
+        .node.c-sp { border-color: var(--sp); box-shadow: 0 0 20px rgba(250,204,21,0.3); } .node.c-sp i { color: var(--sp); }
+        .node.c-db { border-color: var(--db); box-shadow: 0 0 30px rgba(74,222,128,0.3); } .node.c-db i { color: var(--db); }
+
+        /* Left Side Node Positions */
+        .n-l-kh { top: 200px; left: 350px; }
+        .n-l-cb { top: 450px; left: 150px; }
+        .n-l-dt { top: 450px; left: 550px; }
+        .n-l-p1 { top: 650px; left: 450px; }
+        .n-l-p2 { top: 650px; left: 550px; }
+        .n-l-p3 { top: 650px; left: 650px; }
+
+        /* Right Side Node Positions */
+        .n-r-kh { top: 250px; left: 840px; }
+        .n-r-cb { top: 600px; left: 840px; }
+        .n-r-cbtsc { top: 750px; left: 840px; } /* NEW: CB Trụ sở chính */
+        
+        .n-r-mfe { top: 250px; left: 1020px; }
+        .n-r-api1 { top: 250px; left: 1200px; }
+        .n-r-bfe { top: 600px; left: 1340px; }
+        
+        .n-r-bems { top: 250px; left: 1540px; }
+        .n-r-mms { top: 425px; left: 1540px; }
+        .n-r-boms { top: 600px; left: 1540px; }
+
+        .n-r-db { top: 550px; left: 1740px; }
+        .n-r-api2 { top: 425px; left: 1900px; }
+        
+        .n-r-merch1 { top: 300px; left: 2100px; }
+        .n-r-merch2 { top: 425px; left: 2100px; }
+        .n-r-merch3 { top: 550px; left: 2100px; }
+
+        /* Service Providers Box Positions */
+        .n-r-svc1 { top: 150px; left: 2300px; }
+        .n-r-svc2 { top: 240px; left: 2300px; }
+        .n-r-svc3 { top: 330px; left: 2300px; }
+        .n-r-svc4 { top: 420px; left: 2300px; }
+        .n-r-svc5 { top: 510px; left: 2300px; }
+        .n-r-svc6 { top: 600px; left: 2300px; }
+
+        .node-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .node.mini .node-label {
+            font-size: 0.65rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="infographic-wrapper">
+    <div class="infographic">
+        
+        <!-- Titles -->
+        <h2 class="title-left">BEFORE</h2>
+        <h2 class="title-right">AFTER</h2>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- System Zones Overlay (Right Side) -->
+        <div class="sys-zone" style="left: 930px; top: 130px; width: 180px; height: 700px;">
+            <div class="zone-name" style="color: rgba(255,255,255,0.4);">INTERNET</div>
+        </div>
+        <div class="sys-zone" style="left: 1120px; top: 130px; width: 140px; height: 700px; border-color: #f9731655; background: rgba(249,115,22,0.03);">
+            <div class="zone-name" style="color: var(--api);">DMZ</div>
+        </div>
+        <div class="sys-zone" style="left: 1270px; top: 130px; width: 540px; height: 700px; border-color: #ec489955; background: rgba(236,72,153,0.03);">
+            <div class="zone-name" style="color: var(--ms);">INTERNAL CORE</div>
+        </div>
+        <div class="sys-zone" style="left: 1820px; top: 130px; width: 160px; height: 700px; border-color: #f9731655; background: rgba(249,115,22,0.03);">
+            <div class="zone-name" style="color: var(--api);">DMZ</div>
+        </div>
+        
+        <!-- Services Provider Zone -->
+        <div class="sys-zone" style="left: 2230px; top: 90px; width: 140px; height: 570px; border-color: #facc1555; background: rgba(250,204,21,0.03);">
+            <div class="zone-name" style="color: var(--sp);">CÁC DỊCH VỤ</div>
+        </div>
+
+        <!-- SVG Connections -->
+        <svg class="connections" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- Arrowheads definitions -->
+                <marker id="mh-kh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker>
+                <marker id="mh-cb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f472b6"/></marker>
+                <marker id="mh-dt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/></marker>
+                <marker id="mh-fe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6"/></marker>
+                <marker id="mh-api" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316"/></marker>
+                <marker id="mh-ms" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ec4899"/></marker>
+                <marker id="mh-sp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#facc15"/></marker>
+                <marker id="mh-db" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4ade80"/></marker>
+            </defs>
+
+            <!-- ===================== LEFT PANE ===================== -->
+            
+            <path class="anim-line kh" d="M 310 230 Q 280 320 180 410" marker-end="url(#mh-cb)"/>
+            <path class="anim-line cb rev" d="M 180 430 Q 200 300 330 220" marker-end="url(#mh-kh)"/>
+            <path class="anim-line kh" d="M 390 230 Q 420 320 520 410" marker-end="url(#mh-dt)"/>
+            <path class="anim-line dt rev" d="M 520 430 Q 500 300 370 220" marker-end="url(#mh-kh)"/>
+            <path class="anim-line cb" d="M 210 430 Q 350 410 490 430" marker-end="url(#mh-dt)"/>
+            <path class="anim-line dt rev" d="M 490 470 Q 350 490 210 470" marker-end="url(#mh-cb)"/>
+            <path class="anim-line dt" d="M 520 500 Q 470 550 450 600" marker-end="url(#mh-sp)"/>
+            <path class="anim-line sp rev" d="M 470 610 Q 500 550 540 510" marker-end="url(#mh-dt)"/>
+            <path class="anim-line dt" d="M 530 510 L 530 600" marker-end="url(#mh-sp)"/>
+            <path class="anim-line sp rev" d="M 570 600 L 570 510" marker-end="url(#mh-dt)"/>
+            <path class="anim-line dt" d="M 580 500 Q 630 550 650 600" marker-end="url(#mh-sp)"/>
+            <path class="anim-line sp rev" d="M 630 610 Q 600 550 560 510" marker-end="url(#mh-dt)"/>
+
+            <!-- ===================== RIGHT PANE ===================== -->
+            
+            <!-- Mobile Flow -->
+            <path class="anim-line kh" d="M 900 250 L 960 250" marker-end="url(#mh-fe)"/>
+            <path class="anim-line fe" d="M 1080 250 L 1140 250" marker-end="url(#mh-api)"/>
+            <path class="anim-line api" d="M 1260 250 L 1480 250" marker-end="url(#mh-ms)"/>
+            <path class="anim-line ms" d="M 1540 310 L 1540 365" marker-end="url(#mh-ms)"/>
+            <path class="anim-line ms" d="M 1600 425 L 1840 425" marker-end="url(#mh-api)"/>
+            
+            <!-- API Out to Merchants -->
+            <path class="anim-line api" d="M 1960 405 Q 2000 320 2060 320" marker-end="url(#mh-dt)"/>
+            <path class="anim-line api" d="M 1960 425 L 2040 425" marker-end="url(#mh-dt)"/>
+            <path class="anim-line api" d="M 1960 445 Q 2000 550 2060 550" marker-end="url(#mh-dt)"/>
+
+            <!-- Merchants out to Final Services Block -->
+            <path class="anim-line dt" d="M 2140 300 L 2220 300" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 425 L 2220 425" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 550 L 2220 550" marker-end="url(#mh-sp)"/>
+
+            <!-- Back Office Flow -->
+            <path class="anim-line cb" d="M 900 600 L 1280 600" marker-end="url(#mh-fe)"/>
+            
+            <!-- Cán bộ Trụ sở chính Flow (Slanting up into BackOffice FE) -->
+            <path class="anim-line cb" d="M 900 750 Q 1050 750 1280 630" marker-end="url(#mh-fe)"/>
+
+            <path class="anim-line fe" d="M 1400 600 L 1480 600" marker-end="url(#mh-ms)"/>
+
+            <!-- Microservices to Database -->
+            <path class="anim-line db-conn" d="M 1580 290 Q 1650 400 1710 490" marker-end="url(#mh-db)"/>
+            <path class="anim-line db-conn" d="M 1590 460 L 1690 520" marker-end="url(#mh-db)"/>
+            <path class="anim-line db-conn" d="M 1600 590 L 1680 565" marker-end="url(#mh-db)"/>
+
+        </svg>
+
+        <!-- Communication Badges in Left Pane -->
+        <div class="comm-icons pos-kh-cb">
+            <i class="fa-solid fa-phone-volume" title="Gọi điện thoại"></i>
+            <i class="fa-solid fa-envelope" title="Email"></i>
+        </div>
+        <div class="comm-icons pos-kh-dt">
+            <i class="fa-solid fa-phone-volume" title="Gọi điện thoại Hotline"></i>
+            <i class="fa-solid fa-comment-sms" style="color: #4ade80;" title="Tin nhắn SMS xác nhận"></i>
+            <i class="fa-solid fa-envelope" title="Email"></i>
+        </div>
+        <div class="comm-icons pos-cb-dt">
+            <i class="fa-solid fa-share-from-square" style="color: #c084fc;" title="Chuyển dữ liệu"></i>
+            <i class="fa-regular fa-envelope" style="color: #94a3b8;" title="Email nội bộ"></i>
+        </div>
+
+        <!-- ======================= LEFT HTML NODES ======================= -->
+        
+        <div class="node main c-kh n-l-kh">
+            <i class="fa-solid fa-user-tie"></i>
+            <div class="node-label">Khách<br>Hàng</div>
+        </div>
+        <div class="node main c-cb n-l-cb">
+            <i class="fa-solid fa-headset"></i>
+            <div class="node-label">CBQL KH</div>
+        </div>
+        <div class="node main c-dt n-l-dt">
+            <i class="fa-solid fa-handshake"></i>
+            <div class="node-label">Đối Tác</div>
+        </div>
+
+        <div class="node mini c-sp n-l-p1">
+            <i class="fa-solid fa-plane"></i>
+            <div class="node-label">Phòng chờ</div>
+        </div>
+        <div class="node mini c-sp n-l-p2">
+            <i class="fa-solid fa-golf-ball-tee"></i>
+            <div class="node-label">Golf</div>
+        </div>
+        <div class="node mini c-sp n-l-p3">
+            <i class="fa-solid fa-user-doctor"></i>
+            <div class="node-label">Bác sĩ</div>
+        </div>
+
+
+        <!-- ======================= RIGHT HTML NODES ======================= -->
+        
+        <!-- Actors outside the boxes -->
+        <div class="node main c-kh n-r-kh">
+            <i class="fa-solid fa-user-tie"></i>
+            <div class="node-label">Khách<br>Hàng</div>
+        </div>
+        <div class="node main c-cb n-r-cb">
+            <i class="fa-solid fa-headset"></i>
+            <div class="node-label">CBQL KH</div>
+        </div>
+
+        <!-- Cán bộ Trụ sở chính -->
+        <div class="node main c-cb n-r-cbtsc">
+            <i class="fa-solid fa-users-gear"></i>
+            <div class="node-label">CB Trụ Sở<br>Chính</div>
+        </div>
+
+        <!-- Internet Zone -->
+        <div class="node main c-fe n-r-mfe">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <div class="node-label">Mobile<br>Front End</div>
+        </div>
+
+        <!-- DMZ Zone -->
+        <div class="node main c-api n-r-api1">
+            <i class="fa-solid fa-network-wired"></i>
+            <div class="node-label">Open API</div>
+        </div>
+        <div class="node main c-api n-r-api2">
+            <i class="fa-solid fa-diagram-project"></i>
+            <div class="node-label">Open API</div>
+        </div>
+
+        <!-- Internal Zone -->
+        <div class="node main c-fe n-r-bfe">
+            <i class="fa-solid fa-laptop"></i>
+            <div class="node-label">Backoffice<br>Front End</div>
+        </div>
+        <div class="node main c-ms n-r-bems">
+            <i class="fa-solid fa-server"></i>
+            <div class="node-label">Backend<br>Microservice</div>
+        </div>
+        <div class="node main c-ms n-r-mms">
+            <i class="fa-solid fa-globe"></i>
+            <div class="node-label">Merchant<br>Microservice</div>
+        </div>
+        <div class="node main c-ms n-r-boms">
+            <i class="fa-solid fa-server"></i>
+            <div class="node-label">Back Office<br>Microservice</div>
+        </div>
+        
+        <div class="node main c-db n-r-db">
+            <i class="fa-solid fa-database"></i>
+            <div class="node-label">Database</div>
+        </div>
+
+        <!-- External Merchants Zone -->
+        <div class="node mini c-dt n-r-merch1">
+            <i class="fa-solid fa-gift"></i>
+            <div class="node-label">Linkcare</div>
+        </div>
+        <div class="node mini c-dt n-r-merch2">
+            <i class="fa-solid fa-pills"></i>
+            <div class="node-label">Clinpharm</div>
+        </div>
+        <div class="node mini c-dt n-r-merch3">
+            <i class="fa-solid fa-hotel"></i>
+            <div class="node-label">WBooking</div>
+        </div>
+
+        <!-- End Services Array -->
+        <div class="node mini c-sp n-r-svc1">
+            <i class="fa-solid fa-plane"></i>
+            <div class="node-label">Phòng chờ</div>
+        </div>
+        <div class="node mini c-sp n-r-svc2">
+            <i class="fa-solid fa-bolt"></i>
+            <div class="node-label">Fast track</div>
+        </div>
+        <div class="node mini c-sp n-r-svc3">
+            <i class="fa-solid fa-golf-ball-tee"></i>
+            <div class="node-label">Golf</div>
+        </div>
+        <div class="node mini c-sp n-r-svc4">
+            <i class="fa-solid fa-user-doctor"></i>
+            <div class="node-label">Bác sĩ</div>
+        </div>
+        <div class="node mini c-sp n-r-svc5">
+            <i class="fa-solid fa-spa"></i>
+            <div class="node-label">Nghỉ dưỡng</div>
+        </div>
+        <div class="node mini c-sp n-r-svc6">
+            <i class="fa-solid fa-utensils"></i>
+            <div class="node-label">Ăn uống</div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
