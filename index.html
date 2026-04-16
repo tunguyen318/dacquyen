@@ -1,542 +1,219 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quy trình Đặc quyền - So sánh Trước & Sau</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg: #0f172a;
-            --kh: #3b82f6; /* Blue */
-            --cb: #f472b6; /* Pink */
-            --dt: #34d399; /* Green */
-            --fe: #8b5cf6; /* Purple */
-            --api: #f97316; /* Orange */
-            --ms: #ec4899; /* Magenta */
-            --sp: #facc15; /* Yellow */
-            --db: #4ade80; /* Light Green */
-        }
-
-        body {
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Outfit', sans-serif;
-            color: white;
-            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
-        }
-
-        .infographic-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            padding: 40px;
-            cursor: grab;
-        }
-        .infographic-wrapper:active {
-            cursor: grabbing;
-        }
-
-        .infographic {
-            position: relative;
-            width: 2450px;
-            height: 900px;
-            margin: 0 auto;
-        }
-
-        /* Titles */
-        .title-left, .title-right {
-            position: absolute;
-            top: 20px;
-            font-size: 2.2rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 800;
-            color: rgba(255,255,255,0.9);
-            z-index: 20;
-            text-shadow: 0 0 20px rgba(255,255,255,0.3);
-        }
-        .title-left { left: 350px; transform: translateX(-50%); }
-        .title-right { left: 1560px; transform: translateX(-50%); }
-
-        /* Divider */
-        .divider {
-            position: absolute;
-            left: 770px;
-            top: 50px;
-            bottom: 50px;
-            width: 2px;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
-        }
-
-        /* Sys Zones */
-        .sys-zone {
-            position: absolute;
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 12px;
-            background: rgba(255,255,255,0.01);
-            z-index: 0;
-        }
-        .zone-name {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg);
-            padding: 0 15px;
-            font-weight: 700;
-            color: rgba(255,255,255,0.6);
-            font-size: 1rem;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        /* Communication Icons */
-        .comm-icons {
-            position: absolute;
-            z-index: 15;
-            display: flex;
-            gap: 10px;
-            transform: translate(-50%, -50%);
-            background: var(--bg);
-            padding: 6px 15px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        .comm-icons i { font-size: 1.2rem; animation: pulse 2s infinite alternate; }
-        .comm-icons i.fa-envelope { color: #facc15; }
-        .comm-icons i.fa-phone-volume { color: #38bdf8; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8;}
-            100% { transform: scale(1.15); opacity: 1;}
-        }
-
-        /* Communication Box Positions (Left Pane) */
-        .pos-kh-cb { top: 325px; left: 250px; }
-        .pos-kh-dt { top: 325px; left: 450px; }
-        .pos-cb-dt { top: 450px; left: 350px; }
-
-        /* SVG layer */
-        svg.connections {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 2450px;
-            height: 900px;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* Lines */
-        .anim-line {
-            fill: none;
-            stroke-width: 3;
-            stroke-dasharray: 12 12;
-            animation: dash 1.5s linear infinite;
-            /* Using drop-shadow for lines crossing paths to look distinct */
-            filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
-        }
-        .anim-line.rev { animation: dash-rev 1.5s linear infinite; }
-
-        .anim-line.kh { stroke: var(--kh); }
-        .anim-line.cb { stroke: var(--cb); }
-        .anim-line.dt { stroke: var(--dt); }
-        .anim-line.fe { stroke: var(--fe); }
-        .anim-line.api { stroke: var(--api); }
-        .anim-line.ms { stroke: var(--ms); }
-        .anim-line.sp { stroke: var(--sp); }
-        .anim-line.db-conn { stroke: var(--db); }
-
-        @keyframes dash { to { stroke-dashoffset: -24; } }
-        @keyframes dash-rev { to { stroke-dashoffset: 24; } }
-
-        /* Nodes */
-        .node {
-            position: absolute;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            transform: translate(-50%, -50%);
-            background: rgba(30, 41, 59, 1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .node:hover { transform: translate(-50%, -50%) scale(1.1); }
-
-        .node.main { width: 120px; height: 120px; }
-        .node.mini { width: 80px; height: 80px; }
-
-        /* Node Sizes & Colors */
-        .node i { margin-bottom: 5px; }
-        .node.main i { font-size: 2.5rem; }
-        .node.mini i { font-size: 1.5rem; margin-bottom: 3px; }
-
-        .node.c-kh { border-color: var(--kh); box-shadow: 0 0 30px rgba(59,130,246,0.3); } .node.c-kh i { color: var(--kh); }
-        .node.c-cb { border-color: var(--cb); box-shadow: 0 0 30px rgba(244,114,182,0.3); } .node.c-cb i { color: var(--cb); }
-        .node.c-dt { border-color: var(--dt); box-shadow: 0 0 30px rgba(52,211,153,0.3); } .node.c-dt i { color: var(--dt); }
-        .node.c-fe { border-color: var(--fe); box-shadow: 0 0 30px rgba(139,92,246,0.3); } .node.c-fe i { color: var(--fe); }
-        .node.c-api { border-color: var(--api); box-shadow: 0 0 30px rgba(249,115,22,0.3); } .node.c-api i { color: var(--api); }
-        .node.c-ms { border-color: var(--ms); box-shadow: 0 0 30px rgba(236,72,153,0.3); } .node.c-ms i { color: var(--ms); }
-        .node.c-sp { border-color: var(--sp); box-shadow: 0 0 20px rgba(250,204,21,0.3); } .node.c-sp i { color: var(--sp); }
-        .node.c-db { border-color: var(--db); box-shadow: 0 0 30px rgba(74,222,128,0.3); } .node.c-db i { color: var(--db); }
-
-        /* Left Side Node Positions */
-        .n-l-kh { top: 200px; left: 350px; }
-        .n-l-cb { top: 450px; left: 150px; }
-        .n-l-dt { top: 450px; left: 550px; }
-        .n-l-p1 { top: 650px; left: 450px; }
-        .n-l-p2 { top: 650px; left: 550px; }
-        .n-l-p3 { top: 650px; left: 650px; }
-
-        /* Right Side Node Positions */
-        .n-r-kh { top: 250px; left: 840px; }
-        .n-r-cb { top: 600px; left: 840px; }
-        .n-r-cbtsc { top: 750px; left: 840px; }
-        
-        .n-r-mfe { top: 250px; left: 1020px; }
-        .n-r-api1 { top: 250px; left: 1200px; }
-        .n-r-bfe { top: 600px; left: 1340px; }
-        
-        .n-r-bems { top: 250px; left: 1540px; }
-        .n-r-mms { top: 425px; left: 1540px; }
-        .n-r-boms { top: 600px; left: 1540px; }
-
-        .n-r-db { top: 550px; left: 1740px; }
-        .n-r-api2 { top: 425px; left: 1900px; }
-        
-        /* Merchants Node Positions */
-        .n-r-merch1 { top: 160px; left: 2100px; }
-        .n-r-merch2 { top: 260px; left: 2100px; }
-        .n-r-merch3 { top: 360px; left: 2100px; }
-        .n-r-merch-dots { position: absolute; top: 460px; left: 2100px; font-size: 2rem; color: var(--dt); transform: translate(-50%, -50%); letter-spacing: 5px; writing-mode: vertical-rl;}
-        .n-r-merchN { top: 560px; left: 2100px; }
-
-        /* Service Providers Box Positions */
-        .n-r-svc1 { top: 150px; left: 2300px; }
-        .n-r-svc2 { top: 240px; left: 2300px; }
-        .n-r-svc3 { top: 330px; left: 2300px; }
-        .n-r-svc4 { top: 420px; left: 2300px; }
-        .n-r-svc5 { top: 510px; left: 2300px; }
-        .n-r-svc6 { top: 600px; left: 2300px; }
-
-        .node-label {
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-align: center;
-            line-height: 1.2;
-        }
-        .node.mini .node-label {
-            font-size: 0.65rem;
-        }
-
-        .mobile-hint { display: none; }
-        @media (max-width: 1024px) {
-            .mobile-hint {
-                display: flex; justify-content: center; align-items: center; gap: 10px;
-                position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-                background: rgba(15, 23, 42, 0.95); padding: 15px; text-transform: uppercase;
-                border-top: 1px solid rgba(59,130,246,0.5); color: #60a5fa; font-weight: bold;
-                backdrop-filter: blur(10px); box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
-            }
-            .infographic-wrapper { padding-bottom: 80px; padding-left: 10px; }
-            .title-left { left: 150px; }
-            .title-right { left: 1400px; }
-        }
-
-    </style>
+  <meta charset="utf-8">
+  <title>Báo Cáo - Quản Lý Đặc Quyền</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Reveal.js basic styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/night.min.css">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Styling to match brand / tech vibe */
+    .reveal {
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+    }
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #38bdf8; /* Light blue accent */
+      letter-spacing: 1px;
+    }
+    .reveal .slide-content {
+      font-size: 0.7em;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .reveal .slide-content li {
+      margin-bottom: 10px;
+    }
+    .img-showcase {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+    .reveal img {
+      max-height: 400px;
+      object-fit: contain;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      margin: 0;
+    }
+    .flex-row {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .highlight { 
+      color: #facc15; /* Yellow */
+      font-weight: bold; 
+    }
+    .img-caption {
+      font-size: 0.45em;
+      color: #94a3b8;
+      font-style: italic;
+      margin-top: 5px !important;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    /* Logo or corner badge */
+    .corner-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.5rem;
+      color: rgba(255,255,255,0.2);
+      font-weight: 800;
+      z-index: 100;
+    }
+  </style>
 </head>
 <body>
+  <div class="corner-badge"><i class="fa-solid fa-shield-halved"></i> M3-M4 EVALUATION</div>
+  <div class="reveal">
+    <div class="slides">
 
-<div class="infographic-wrapper">
-    <div class="infographic">
+      <!-- COVER SLIDE -->
+      <section data-background-gradient="linear-gradient(-135deg, #0f172a 0%, #1e293b 100%)">
+        <h2 style="font-size: 1.6em;">ĐÁNH GIÁ ĐÁP ỨNG TIÊU CHÍ</h2>
+        <div style="width: 100px; height: 4px; background: #38bdf8; margin: 20px auto;"></div>
+        <h3 style="color: white; font-size: 1.2em; letter-spacing: 3px;">HỆ THỐNG QUẢN LÝ ĐẶC QUYỀN</h3>
+        <p style="margin-top: 40px; color: #94a3b8; font-size: 0.7em;">
+          Chứng minh năng lực đáp ứng mức độ trưởng thành <br>
+          <span class="highlight" style="font-size: 1.5em; line-height: 2;">M3 - M4 (Vận hành thực chiến)</span>
+        </p>
+      </section>
+
+      <!-- SLIDE 2: KIẾN TRÚC -->
+      <section data-background-interactive data-background-iframe="index.html">
+      </section>
+
+      <!-- SLIDE 1: COMPLIANCE -->
+      <section data-transition="slide">
+        <h4 style="text-align: left; font-size: 1.3em;"><i class="fa-solid fa-scale-balanced"></i> I. Mức Độ Tuân Thủ (Compliance)</h4>
+        <p style="text-align: left; font-size: 0.6em; color: #a5b4fc; font-style: italic; margin-bottom: 40px;">Khẳng định kiểm soát vận hành chặt chẽ theo quy chuẩn.</p>
         
-        <!-- Titles -->
-        <h2 class="title-left">BEFORE</h2>
-        <h2 class="title-right">AFTER</h2>
+        <div class="flex-row">
+          <div class="slide-content" style="flex: 1.2;">
+            <ul>
+              <li><span class="highlight">Quy chuẩn Ngành:</span> Đáp ứng hoàn toàn tiêu chuẩn <strong>ISO/IEC 27001</strong> và <strong>ISO 20000</strong>; tuân thủ an toàn dữ liệu khắt khe của NHNN.</li>
+              <li><span class="highlight">Quy trình Nội bộ:</span> Vận hành và phát triển phần mềm tuân thủ Quy định số <strong>10570/QĐ-BIDV</strong>. Hệ thống chứng từ được lưu duyệt minh bạch 100%.</li>
+              <li><span class="highlight">Khả năng Giải trình (Audit):</span> Mọi nghiệp vụ đều để lại vết (Audit Trail) sẵn sàng xuất trình làm bằng chứng kiểm tra bảo mật.</li>
+            </ul>
+          </div>
+          <div class="img-showcase" style="flex: 1;">
+            <img src="snapshot/To%20trinh%20BLD%20trien%20khai.png" alt="Tờ trình triển khai">
+            <p class="img-caption">Bằng chứng: Tờ trình triển khai minh bạch phê duyệt</p>
+          </div>
+        </div>
+      </section>
 
-        <!-- Divider -->
-        <div class="divider"></div>
-
-        <!-- System Zones Overlay (Right Side) -->
-        <div class="sys-zone" style="left: 930px; top: 130px; width: 180px; height: 700px;">
-            <div class="zone-name" style="color: rgba(255,255,255,0.4);">INTERNET</div>
-        </div>
-        <div class="sys-zone" style="left: 1120px; top: 130px; width: 140px; height: 700px; border-color: #f9731655; background: rgba(249,115,22,0.03);">
-            <div class="zone-name" style="color: var(--api);">DMZ</div>
-        </div>
-        <div class="sys-zone" style="left: 1270px; top: 130px; width: 540px; height: 700px; border-color: #ec489955; background: rgba(236,72,153,0.03);">
-            <div class="zone-name" style="color: var(--ms);">INTERNAL CORE</div>
-        </div>
-        <div class="sys-zone" style="left: 1820px; top: 130px; width: 160px; height: 700px; border-color: #f9731655; background: rgba(249,115,22,0.03);">
-            <div class="zone-name" style="color: var(--api);">DMZ</div>
-        </div>
+      <!-- SLIDE 2: TRUST -->
+      <section data-transition="slide">
+        <h4 style="text-align: left; font-size: 1.3em;"><i class="fa-solid fa-shield-cat"></i> II. Độ Tin Cậy & Bảo Mật (Trust)</h4>
+        <p style="text-align: left; font-size: 0.6em; color: #a5b4fc; font-style: italic; margin-bottom: 40px;">Vận hành thực chiến an toàn, không có rủi ro mất mát dữ liệu.</p>
         
-        <!-- Merchant Zone Box -->
-        <div class="sys-zone" style="left: 2030px; top: 90px; width: 140px; height: 570px; border-color: #34d39955; background: rgba(52,211,153,0.03);">
-            <div class="zone-name" style="color: var(--dt);">HỆ THỐNG MERCHANT</div>
+        <div class="flex-row" style="align-items: flex-start;">
+          <div class="slide-content" style="flex: 1.3;">
+            <ul style="font-size: 0.85em;">
+              <li><span class="highlight">Nguồn Chân Lý Duy Nhất:</span> Dữ liệu giao dịch gốc lưu tại Database đặt tại BIDV. Đối tác kiểm soát chéo nội bộ, chặn truy cập trực tiếp.</li>
+              <li><span class="highlight">Giao dịch Nguyên vẹn (Integrity):</span> Ứng dụng Transaction Commit/Rollback và xử lý dữ liệu qua Gateway Token phân quyền.</li>
+              <li><span class="highlight">Truy vết End-to-End:</span> Quản trị Log giao dịch của KH cho phép truy vết mọi phát sinh và kiểm soát rủi ro toàn diện.</li>
+              <li><span class="highlight">An toàn và bảo mật vận hành:</span> Kiểm soát truy cập qua hệ thống One Access của BIDV, phân quyền qua hệ thống IDM, bảo vệ dữ liệu, quản lý lỗ hổng/sự cố qua hạ tầng bảo mật chung của BIDV.</li>
+              <li><span class="highlight">Khả năng phục hồi và liên tục dịch vụ:</span> Có hệ thống dự phòng HA, DR đảm bảo khôi phục, khả năng chịu tải và có hệ thống giám sát.</li>
+            </ul>
+          </div>
+          <div class="img-showcase" style="flex: 0.9; flex-direction: column; gap: 5px;">
+            <div style="text-align:center;">
+              <img src="snapshot/Quan%20ly%20giao%20dich%20KH.png" alt="Quản lý giao dịch khách hàng" style="max-height: 170px;">
+              <p class="img-caption" style="margin:0 !important;">Log giao dịch KH End-to-End</p>
+            </div>
+            <div style="text-align:center;">
+              <img src="snapshot/monitor.png" alt="Giám sát HA DR" style="max-height: 170px;">
+              <p class="img-caption" style="margin:0 !important;">Hệ thống giám sát</p>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <!-- Services Provider Zone -->
-        <div class="sys-zone" style="left: 2230px; top: 90px; width: 140px; height: 570px; border-color: #facc1555; background: rgba(250,204,21,0.03);">
-            <div class="zone-name" style="color: var(--sp);">CÁC DỊCH VỤ ĐẶC QUYỀN</div>
-        </div>
-
-        <!-- SVG Connections -->
-        <svg class="connections" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <!-- Arrowheads definitions -->
-                <marker id="mh-kh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker>
-                <marker id="mh-cb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f472b6"/></marker>
-                <marker id="mh-dt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#34d399"/></marker>
-                <marker id="mh-fe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b5cf6"/></marker>
-                <marker id="mh-api" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316"/></marker>
-                <marker id="mh-ms" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ec4899"/></marker>
-                <marker id="mh-sp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#facc15"/></marker>
-                <marker id="mh-db" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#4ade80"/></marker>
-            </defs>
-
-            <!-- ===================== LEFT PANE ===================== -->
-            
-            <path class="anim-line kh" d="M 310 230 Q 280 320 180 410" marker-end="url(#mh-cb)"/>
-            <path class="anim-line cb rev" d="M 180 430 Q 200 300 330 220" marker-end="url(#mh-kh)"/>
-            <path class="anim-line kh" d="M 390 230 Q 420 320 520 410" marker-end="url(#mh-dt)"/>
-            <path class="anim-line dt rev" d="M 520 430 Q 500 300 370 220" marker-end="url(#mh-kh)"/>
-            <path class="anim-line cb" d="M 210 430 Q 350 410 490 430" marker-end="url(#mh-dt)"/>
-            <path class="anim-line dt rev" d="M 490 470 Q 350 490 210 470" marker-end="url(#mh-cb)"/>
-            <path class="anim-line dt" d="M 520 500 Q 470 550 450 600" marker-end="url(#mh-sp)"/>
-            <path class="anim-line sp rev" d="M 470 610 Q 500 550 540 510" marker-end="url(#mh-dt)"/>
-            <path class="anim-line dt" d="M 530 510 L 530 600" marker-end="url(#mh-sp)"/>
-            <path class="anim-line sp rev" d="M 570 600 L 570 510" marker-end="url(#mh-dt)"/>
-            <path class="anim-line dt" d="M 580 500 Q 630 550 650 600" marker-end="url(#mh-sp)"/>
-            <path class="anim-line sp rev" d="M 630 610 Q 600 550 560 510" marker-end="url(#mh-dt)"/>
-
-            <!-- ===================== RIGHT PANE ===================== -->
-            
-            <!-- Direct Line: Khách Hàng to Merchant Box (Sweeping Path at Top) -->
-            <path class="anim-line kh" d="M 840 190 L 840 75 Q 840 60 855 60 L 2085 60 Q 2100 60 2100 75 L 2100 90" marker-end="url(#mh-kh)" />
-
-            <!-- KH to Mobile Flow -->
-            <path class="anim-line kh" d="M 900 250 L 960 250" marker-end="url(#mh-fe)"/>
-            <path class="anim-line fe" d="M 1080 250 L 1140 250" marker-end="url(#mh-api)"/>
-            <path class="anim-line api" d="M 1260 250 L 1480 250" marker-end="url(#mh-ms)"/>
-            
-            <!-- Merchant MS to API2 and Reverse (Phản hồi API2 về MS) -->
-            <path class="anim-line ms" d="M 1600 415 L 1840 415" marker-end="url(#mh-ms)"/>
-            <path class="anim-line api" d="M 1840 435 L 1600 435" marker-end="url(#mh-api)"/>
-            
-            <!-- API Out to Individual Merchants -->
-            <path class="anim-line api" d="M 1960 400 Q 2000 160 2060 160" marker-end="url(#mh-dt)"/>
-            <path class="anim-line api" d="M 1960 410 Q 2000 260 2060 260" marker-end="url(#mh-dt)"/>
-            <path class="anim-line api" d="M 1960 420 Q 2000 360 2060 360" marker-end="url(#mh-dt)"/>
-            <path class="anim-line api" d="M 1960 430 Q 2000 560 2060 560" marker-end="url(#mh-dt)"/>
-
-            <!-- Khung Merchant Phản Hồi về API2 -->
-            <path class="anim-line dt" d="M 2030 460 L 1960 460" marker-end="url(#mh-api)"/>
-
-            <!-- Merchants out to Final Services Block -->
-            <path class="anim-line dt" d="M 2140 160 L 2220 160" marker-end="url(#mh-sp)"/>
-            <path class="anim-line dt" d="M 2140 260 L 2220 260" marker-end="url(#mh-sp)"/>
-            <path class="anim-line dt" d="M 2140 360 L 2220 360" marker-end="url(#mh-sp)"/>
-            <path class="anim-line dt" d="M 2140 560 L 2220 560" marker-end="url(#mh-sp)"/>
-
-            <!-- Back Office Flow -->
-            <path class="anim-line cb" d="M 900 600 L 1280 600" marker-end="url(#mh-fe)"/>
-            <!-- Cán bộ Trụ sở chính Flow -->
-            <path class="anim-line cb" d="M 900 750 Q 1050 750 1280 630" marker-end="url(#mh-fe)"/>
-            <path class="anim-line fe" d="M 1400 600 L 1480 600" marker-end="url(#mh-ms)"/>
-
-            <!-- Microservices to Database -->
-            <path class="anim-line db-conn" d="M 1580 290 Q 1650 400 1710 490" marker-end="url(#mh-db)"/>
-            <path class="anim-line db-conn" d="M 1590 460 L 1690 520" marker-end="url(#mh-db)"/>
-            <path class="anim-line db-conn" d="M 1600 590 L 1680 565" marker-end="url(#mh-db)"/>
-
-        </svg>
-
-        <!-- Communication Badges in Left Pane -->
-        <div class="comm-icons pos-kh-cb">
-            <i class="fa-solid fa-phone-volume" title="Gọi điện thoại"></i>
-            <i class="fa-solid fa-envelope" title="Email"></i>
-        </div>
-        <div class="comm-icons pos-kh-dt">
-            <i class="fa-solid fa-phone-volume" title="Gọi điện thoại Hotline"></i>
-            <i class="fa-solid fa-comment-sms" style="color: #4ade80;" title="Tin nhắn SMS xác nhận"></i>
-            <i class="fa-solid fa-envelope" title="Email"></i>
-        </div>
-        <div class="comm-icons pos-cb-dt">
-            <i class="fa-solid fa-share-from-square" style="color: #c084fc;" title="Chuyển dữ liệu"></i>
-            <i class="fa-regular fa-envelope" style="color: #94a3b8;" title="Email nội bộ"></i>
-        </div>
-
-        <!-- ======================= LEFT HTML NODES ======================= -->
+      <!-- SLIDE 3: INTELLIGENCE -->
+      <section data-transition="slide">
+        <h4 style="text-align: left; font-size: 1.2em;"><i class="fa-solid fa-network-wired"></i> III. Năng Lực Thông Minh (Intelligence)</h4>
+        <p style="text-align: left; font-size: 0.6em; color: #a5b4fc; font-style: italic; margin-bottom: 40px;">Sức mạnh của trí tuệ điều phối (Two-Way Orchestration).</p>
         
-        <div class="node main c-kh n-l-kh">
-            <i class="fa-solid fa-user-tie"></i>
-            <div class="node-label">Khách<br>Hàng</div>
+        <div class="flex-row">
+          <div class="slide-content" style="flex: 1;">
+            <ul>
+              <li><span class="highlight">Bộ Não Điều Phối Trung Tâm:</span> Backend Microservices gánh vác vai trò Mapping dữ liệu tự động giữa Mobile Frontend đa dạng và các API hệ thống nhà cung cấp khác biệt.</li>
+              <li><span class="highlight">Ổn định & kiểm soát được nhờ rule-base:</span> Ứng dụng rules khai báo giới hạn chi tiêu ngân sách, kiểm tra quyền truy cập Dịch vụ (Golf, Fast track) hoàn toàn độc lập, chính xác tuyệt đối ngay tại lõi.</li>
+            </ul>
+          </div>
+          <div class="img-showcase" style="flex: 1.2;">
+            <img src="snapshot/DOITAC_BIDV.png" style="max-height: 450px; background: white;" alt="Đặc tả API Docs">
+            <p class="img-caption">Bằng chứng: Luồng logic Đặc tả kết nối Open API tích hợp Đối tác</p>
+          </div>
         </div>
-        <div class="node main c-cb n-l-cb">
-            <i class="fa-solid fa-headset"></i>
-            <div class="node-label">CBQL KH</div>
-        </div>
-        <div class="node main c-dt n-l-dt">
-            <i class="fa-solid fa-handshake"></i>
-            <div class="node-label">Đối Tác</div>
-        </div>
+      </section>
 
-        <div class="node mini c-sp n-l-p1">
-            <i class="fa-solid fa-plane"></i>
-            <div class="node-label">Phòng chờ</div>
-        </div>
-        <div class="node mini c-sp n-l-p2">
-            <i class="fa-solid fa-golf-ball-tee"></i>
-            <div class="node-label">Golf</div>
-        </div>
-        <div class="node mini c-sp n-l-p3">
-            <i class="fa-solid fa-user-doctor"></i>
-            <div class="node-label">Bác sĩ</div>
-        </div>
-
-        <!-- ======================= RIGHT HTML NODES ======================= -->
+      <!-- SLIDE 4: UX & AGILITY -->
+      <section data-transition="slide">
+        <h4 style="text-align: left; font-size: 1.1em;"><i class="fa-solid fa-wand-magic-sparkles"></i> IV. Tính Linh Hoạt (UX & Agility)</h4>
+        <p style="text-align: left; font-size: 0.6em; color: #a5b4fc; font-style: italic; margin-bottom: 40px;">Trải nghiệm Low-code, Zero Downtime khi nâng cấp.</p>
         
-        <!-- Actors outside the boxes -->
-        <div class="node main c-kh n-r-kh">
-            <i class="fa-solid fa-user-tie"></i>
-            <div class="node-label">Khách<br>Hàng</div>
+        <div class="flex-row">
+          <div class="slide-content" style="flex: 1;">
+            <ul>
+              <li><span class="highlight">Khai báo Động (Dynamic Config):</span> Cán bộ kinh doanh chủ động thêm mới Đối tác, set quyền, thiết lập cây dịch vụ chuyên sâu cực kỳ linh hoạt mà <strong>không cần dev code lại</strong>.</li>
+              <li><span class="highlight">Giao diện Phản hồi trực quan:</span> Cấu trúc BackOffice UI tối giản, giảm thiểu lỗi thao tác của người dùng.</li>
+              <li><span class="highlight">Không gián đoạn:</span> Cập nhật mạng lưới dịch vụ ngay trên giao diện tức thời (Hot-reload Config).</li>
+            </ul>
+          </div>
+          <div class="img-showcase" style="flex: 1.5; flex-direction: row; flex-wrap: wrap;">
+            <div style="flex: 1;">
+              <img src="snapshot/Danh%20muc%20doi%20tac.png" style="max-height: 250px;" alt="Quản lý Danh mục đối tác">
+            </div>
+            <div style="flex: 1;">
+              <img src="snapshot/Tham%20so%20cay%20dac%20quyen.png" style="max-height: 250px;" alt="Tham số cây đặc quyền">
+            </div>
+            <p class="img-caption" style="width: 100%;">Bằng chứng: Màn hình linh hoạt Cấu hình Danh mục & Tham số Cây Dịch vụ</p>
+          </div>
         </div>
-        <div class="node main c-cb n-r-cb">
-            <i class="fa-solid fa-headset"></i>
-            <div class="node-label">CBQL KH</div>
-        </div>
-        <!-- Cán bộ Trụ sở chính -->
-        <div class="node main c-cb n-r-cbtsc">
-            <i class="fa-solid fa-users-gear"></i>
-            <div class="node-label">CB Trụ Sở<br>Chính</div>
-        </div>
+      </section>
 
-        <!-- Internet Zone -->
-        <div class="node main c-fe n-r-mfe">
-            <i class="fa-solid fa-mobile-screen"></i>
-            <div class="node-label">Mobile<br>Front End</div>
+      <!-- ENDING SLIDE -->
+      <section data-background-gradient="linear-gradient(135deg, #1e293b 0%, #0f172a 100%)">
+        <h2 style="font-size: 2em; color: #4ade80;">READY TO SCALE</h2>
+        <p style="color: #94a3b8; font-size: 0.8em; margin-top: 20px;">Kiến trúc mở (Microservices) đáp ứng tăng trưởng Traffic linh hoạt</p>
+        <div style="margin-top: 50px;">
+          <i class="fa-brands fa-html5" style="font-size: 3em; color: rgba(255,255,255,0.1);"></i>
         </div>
-
-        <!-- DMZ Zone -->
-        <div class="node main c-api n-r-api1">
-            <i class="fa-solid fa-network-wired"></i>
-            <div class="node-label">Open API</div>
-        </div>
-        <div class="node main c-api n-r-api2">
-            <i class="fa-solid fa-diagram-project"></i>
-            <div class="node-label">Open API</div>
-        </div>
-
-        <!-- Internal Zone -->
-        <div class="node main c-fe n-r-bfe">
-            <i class="fa-solid fa-laptop"></i>
-            <div class="node-label">Backoffice<br>Front End</div>
-        </div>
-        <div class="node main c-ms n-r-bems">
-            <i class="fa-solid fa-server"></i>
-            <div class="node-label">Backend<br>Microservice</div>
-        </div>
-        <div class="node main c-ms n-r-mms">
-            <i class="fa-solid fa-globe"></i>
-            <div class="node-label">Merchant<br>Microservice</div>
-        </div>
-        <div class="node main c-ms n-r-boms">
-            <i class="fa-solid fa-server"></i>
-            <div class="node-label">Back Office<br>Microservice</div>
-        </div>
-        
-        <div class="node main c-db n-r-db">
-            <i class="fa-solid fa-database"></i>
-            <div class="node-label">Database</div>
-        </div>
-
-        <!-- Merchant Zone -->
-        <div class="node mini c-dt n-r-merch1">
-            <i class="fa-solid fa-store"></i>
-            <div class="node-label">Merchant 1</div>
-        </div>
-        <div class="node mini c-dt n-r-merch2">
-            <i class="fa-solid fa-store"></i>
-            <div class="node-label">Merchant 2</div>
-        </div>
-        <div class="node mini c-dt n-r-merch3">
-            <i class="fa-solid fa-store"></i>
-            <div class="node-label">Merchant 3</div>
-        </div>
-        <div class="n-r-merch-dots">...</div>
-        <div class="node mini c-dt n-r-merchN">
-            <i class="fa-solid fa-store"></i>
-            <div class="node-label">Merchant N</div>
-        </div>
-
-        <!-- End Services Box -->
-        <div class="node mini c-sp n-r-svc1">
-            <i class="fa-solid fa-plane"></i>
-            <div class="node-label">Phòng chờ</div>
-        </div>
-        <div class="node mini c-sp n-r-svc2">
-            <i class="fa-solid fa-bolt"></i>
-            <div class="node-label">Fast track</div>
-        </div>
-        <div class="node mini c-sp n-r-svc3">
-            <i class="fa-solid fa-golf-ball-tee"></i>
-            <div class="node-label">Golf</div>
-        </div>
-        <div class="node mini c-sp n-r-svc4">
-            <i class="fa-solid fa-user-doctor"></i>
-            <div class="node-label">Bác sĩ</div>
-        </div>
-        <div class="node mini c-sp n-r-svc5">
-            <i class="fa-solid fa-spa"></i>
-            <div class="node-label">Nghỉ dưỡng</div>
-        </div>
-        <div class="node mini c-sp n-r-svc6">
-            <i class="fa-solid fa-utensils"></i>
-            <div class="node-label">Ăn uống</div>
-        </div>
+      </section>
 
     </div>
-</div>
+  </div>
 
-<div class="mobile-hint">
-    <i class="fa-solid fa-hand-pointer"></i> Kéo vuốt sang ngang để khám phá toàn bộ hệ thống
-</div>
-
-<script>
-    const wrapper = document.querySelector('.infographic-wrapper');
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    wrapper.addEventListener('mousedown', (e) => {
-        isDown = true;
-        startX = e.pageX - wrapper.offsetLeft;
-        scrollLeft = wrapper.scrollLeft;
+  <!-- Reveal.js Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      width: 1100,
+      height: 750,
+      margin: 0.1,
+      transition: 'concave', // none/fade/slide/convex/concave/zoom
+      backgroundTransition: 'fade' // none/fade/slide/convex/concave/zoom
     });
-    wrapper.addEventListener('mouseleave', () => { isDown = false; });
-    wrapper.addEventListener('mouseup', () => { isDown = false; });
-    wrapper.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - wrapper.offsetLeft;
-        wrapper.scrollLeft = scrollLeft - (x - startX) * 1.5;
-    });
-</script>
-
+  </script>
 </body>
 </html>
