@@ -35,6 +35,10 @@
             width: 100%;
             overflow-x: auto;
             padding: 40px;
+            cursor: grab;
+        }
+        .infographic-wrapper:active {
+            cursor: grabbing;
         }
 
         .infographic {
@@ -137,6 +141,8 @@
             stroke-width: 3;
             stroke-dasharray: 12 12;
             animation: dash 1.5s linear infinite;
+            /* Using drop-shadow for lines crossing paths to look distinct */
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
         }
         .anim-line.rev { animation: dash-rev 1.5s linear infinite; }
 
@@ -199,7 +205,7 @@
         /* Right Side Node Positions */
         .n-r-kh { top: 250px; left: 840px; }
         .n-r-cb { top: 600px; left: 840px; }
-        .n-r-cbtsc { top: 750px; left: 840px; } /* NEW: CB Trụ sở chính */
+        .n-r-cbtsc { top: 750px; left: 840px; }
         
         .n-r-mfe { top: 250px; left: 1020px; }
         .n-r-api1 { top: 250px; left: 1200px; }
@@ -212,9 +218,12 @@
         .n-r-db { top: 550px; left: 1740px; }
         .n-r-api2 { top: 425px; left: 1900px; }
         
-        .n-r-merch1 { top: 300px; left: 2100px; }
-        .n-r-merch2 { top: 425px; left: 2100px; }
-        .n-r-merch3 { top: 550px; left: 2100px; }
+        /* Merchants Node Positions */
+        .n-r-merch1 { top: 160px; left: 2100px; }
+        .n-r-merch2 { top: 260px; left: 2100px; }
+        .n-r-merch3 { top: 360px; left: 2100px; }
+        .n-r-merch-dots { position: absolute; top: 460px; left: 2100px; font-size: 2rem; color: var(--dt); transform: translate(-50%, -50%); letter-spacing: 5px; writing-mode: vertical-rl;}
+        .n-r-merchN { top: 560px; left: 2100px; }
 
         /* Service Providers Box Positions */
         .n-r-svc1 { top: 150px; left: 2300px; }
@@ -232,13 +241,6 @@
         }
         .node.mini .node-label {
             font-size: 0.65rem;
-        }
-
-        .infographic-wrapper {
-            cursor: grab;
-        }
-        .infographic-wrapper:active {
-            cursor: grabbing;
         }
 
         .mobile-hint { display: none; }
@@ -283,9 +285,14 @@
             <div class="zone-name" style="color: var(--api);">DMZ</div>
         </div>
         
+        <!-- Merchant Zone Box -->
+        <div class="sys-zone" style="left: 2030px; top: 90px; width: 140px; height: 570px; border-color: #34d39955; background: rgba(52,211,153,0.03);">
+            <div class="zone-name" style="color: var(--dt);">HỆ THỐNG MERCHANT</div>
+        </div>
+
         <!-- Services Provider Zone -->
         <div class="sys-zone" style="left: 2230px; top: 90px; width: 140px; height: 570px; border-color: #facc1555; background: rgba(250,204,21,0.03);">
-            <div class="zone-name" style="color: var(--sp);">CÁC DỊCH VỤ</div>
+            <div class="zone-name" style="color: var(--sp);">CÁC DỊCH VỤ ĐẶC QUYỀN</div>
         </div>
 
         <!-- SVG Connections -->
@@ -319,29 +326,37 @@
 
             <!-- ===================== RIGHT PANE ===================== -->
             
-            <!-- Mobile Flow -->
+            <!-- Direct Line: Khách Hàng to Merchant Box (Sweeping Path at Top) -->
+            <path class="anim-line kh" d="M 840 190 L 840 75 Q 840 60 855 60 L 2085 60 Q 2100 60 2100 75 L 2100 90" marker-end="url(#mh-kh)" />
+
+            <!-- KH to Mobile Flow -->
             <path class="anim-line kh" d="M 900 250 L 960 250" marker-end="url(#mh-fe)"/>
             <path class="anim-line fe" d="M 1080 250 L 1140 250" marker-end="url(#mh-api)"/>
             <path class="anim-line api" d="M 1260 250 L 1480 250" marker-end="url(#mh-ms)"/>
-            <path class="anim-line ms" d="M 1540 310 L 1540 365" marker-end="url(#mh-ms)"/>
-            <path class="anim-line ms" d="M 1600 425 L 1840 425" marker-end="url(#mh-api)"/>
             
-            <!-- API Out to Merchants -->
-            <path class="anim-line api" d="M 1960 405 Q 2000 320 2060 320" marker-end="url(#mh-dt)"/>
-            <path class="anim-line api" d="M 1960 425 L 2040 425" marker-end="url(#mh-dt)"/>
-            <path class="anim-line api" d="M 1960 445 Q 2000 550 2060 550" marker-end="url(#mh-dt)"/>
+            <!-- Merchant MS to API2 and Reverse (Phản hồi API2 về MS) -->
+            <path class="anim-line ms" d="M 1600 415 L 1840 415" marker-end="url(#mh-ms)"/>
+            <path class="anim-line api" d="M 1840 435 L 1600 435" marker-end="url(#mh-api)"/>
+            
+            <!-- API Out to Individual Merchants -->
+            <path class="anim-line api" d="M 1960 400 Q 2000 160 2060 160" marker-end="url(#mh-dt)"/>
+            <path class="anim-line api" d="M 1960 410 Q 2000 260 2060 260" marker-end="url(#mh-dt)"/>
+            <path class="anim-line api" d="M 1960 420 Q 2000 360 2060 360" marker-end="url(#mh-dt)"/>
+            <path class="anim-line api" d="M 1960 430 Q 2000 560 2060 560" marker-end="url(#mh-dt)"/>
+
+            <!-- Khung Merchant Phản Hồi về API2 -->
+            <path class="anim-line dt" d="M 2030 460 L 1960 460" marker-end="url(#mh-api)"/>
 
             <!-- Merchants out to Final Services Block -->
-            <path class="anim-line dt" d="M 2140 300 L 2220 300" marker-end="url(#mh-sp)"/>
-            <path class="anim-line dt" d="M 2140 425 L 2220 425" marker-end="url(#mh-sp)"/>
-            <path class="anim-line dt" d="M 2140 550 L 2220 550" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 160 L 2220 160" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 260 L 2220 260" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 360 L 2220 360" marker-end="url(#mh-sp)"/>
+            <path class="anim-line dt" d="M 2140 560 L 2220 560" marker-end="url(#mh-sp)"/>
 
             <!-- Back Office Flow -->
             <path class="anim-line cb" d="M 900 600 L 1280 600" marker-end="url(#mh-fe)"/>
-            
-            <!-- Cán bộ Trụ sở chính Flow (Slanting up into BackOffice FE) -->
+            <!-- Cán bộ Trụ sở chính Flow -->
             <path class="anim-line cb" d="M 900 750 Q 1050 750 1280 630" marker-end="url(#mh-fe)"/>
-
             <path class="anim-line fe" d="M 1400 600 L 1480 600" marker-end="url(#mh-ms)"/>
 
             <!-- Microservices to Database -->
@@ -394,7 +409,6 @@
             <div class="node-label">Bác sĩ</div>
         </div>
 
-
         <!-- ======================= RIGHT HTML NODES ======================= -->
         
         <!-- Actors outside the boxes -->
@@ -406,7 +420,6 @@
             <i class="fa-solid fa-headset"></i>
             <div class="node-label">CBQL KH</div>
         </div>
-
         <!-- Cán bộ Trụ sở chính -->
         <div class="node main c-cb n-r-cbtsc">
             <i class="fa-solid fa-users-gear"></i>
@@ -452,21 +465,26 @@
             <div class="node-label">Database</div>
         </div>
 
-        <!-- External Merchants Zone -->
+        <!-- Merchant Zone -->
         <div class="node mini c-dt n-r-merch1">
-            <i class="fa-solid fa-gift"></i>
-            <div class="node-label">Linkcare</div>
+            <i class="fa-solid fa-store"></i>
+            <div class="node-label">Merchant 1</div>
         </div>
         <div class="node mini c-dt n-r-merch2">
-            <i class="fa-solid fa-pills"></i>
-            <div class="node-label">Clinpharm</div>
+            <i class="fa-solid fa-store"></i>
+            <div class="node-label">Merchant 2</div>
         </div>
         <div class="node mini c-dt n-r-merch3">
-            <i class="fa-solid fa-hotel"></i>
-            <div class="node-label">WBooking</div>
+            <i class="fa-solid fa-store"></i>
+            <div class="node-label">Merchant 3</div>
+        </div>
+        <div class="n-r-merch-dots">...</div>
+        <div class="node mini c-dt n-r-merchN">
+            <i class="fa-solid fa-store"></i>
+            <div class="node-label">Merchant N</div>
         </div>
 
-        <!-- End Services Array -->
+        <!-- End Services Box -->
         <div class="node mini c-sp n-r-svc1">
             <i class="fa-solid fa-plane"></i>
             <div class="node-label">Phòng chờ</div>
